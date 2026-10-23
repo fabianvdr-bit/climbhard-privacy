@@ -15,7 +15,7 @@
   body { margin: 0; background: var(--fond); color: #fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; justify-content: center; }
   main { width: 100%; max-width: 440px; padding: 28px 16px 40px; }
   .marque { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; margin-bottom: 26px; }
-  .marque img { width: 48px; height: 48px; border-radius: 12px; }
+  .marque img { width: 48px; height: 48px; border-radius: 12px; background: #fff; }
   h1 { font-size: 30px; line-height: 1.15; margin: 0 0 22px; }
   .carte { background: var(--carte); color: var(--texte); border-radius: 18px; padding: 20px; margin-bottom: 22px; }
   .etiq { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--doux); text-transform: uppercase; }
@@ -44,9 +44,14 @@
   <a class="second" id="store" href="#">Je n'ai pas encore l'application</a>
   <div class="code" id="code"></div>
 
-  <ol>
+  <ol id="etapes-store">
     <li>Appuie sur <b>Essayer le défi</b> : l'application s'ouvre directement sur le défi.</li>
     <li>Pas encore installée ? Installe-la depuis le Play Store, puis reviens sur cette page et appuie à nouveau sur <b>Essayer le défi</b>.</li>
+  </ol>
+  <ol id="etapes-test" hidden>
+    <li>L'application est encore en phase de test. Rejoins d'abord le groupe des testeurs : <a id="lien-groupe" href="#" style="color:#5eead4">rejoindre le groupe testsapps</a>.</li>
+    <li>Puis <a id="lien-testeur" href="#" style="color:#5eead4">deviens testeur et installe l'application</a>.</li>
+    <li>Reviens sur cette page et appuie sur <b>Essayer le défi</b> : le défi s'ouvre dans l'application.</li>
   </ol>
 </main>
 <script>
@@ -55,8 +60,15 @@
 
   var q = new URLSearchParams(location.search);
   var code = (q.get("c") || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 6);
-  var store = "https://play.google.com/store/apps/details?id=" + APP.packageId +
-    (code ? "&referrer=" + encodeURIComponent("defi=" + code) : "");
+  // Tant que l'app est en test fermé, la fiche Play Store n'existe que pour les
+  // testeurs : on passe par le groupe testsapps puis la page « devenir testeur ».
+  // Le jour de la publication : TEST_FERME = false.
+  var TEST_FERME = true;
+  var GROUPE = "https://groups.google.com/g/testsapps";
+  var store = TEST_FERME
+    ? "https://play.google.com/apps/testing/" + APP.packageId
+    : "https://play.google.com/store/apps/details?id=" + APP.packageId +
+      (code ? "&referrer=" + encodeURIComponent("defi=" + code) : "");
 
   if (q.get("t")) {
     document.getElementById("carte").hidden = false;
@@ -79,6 +91,13 @@
     try { navigator.clipboard && code && navigator.clipboard.writeText(code); } catch (e) {}
   });
   document.getElementById("store").href = store;
+  if (TEST_FERME) {
+    document.getElementById("etapes-store").hidden = true;
+    document.getElementById("etapes-test").hidden = false;
+    document.getElementById("lien-groupe").href = GROUPE;
+    document.getElementById("lien-testeur").href = store;
+    document.getElementById("store").href = GROUPE;
+  }
   if (!code) { essayer.textContent = "Télécharger l'application ▶"; essayer.href = store; document.getElementById("store").hidden = true; }
 </script>
 </body>

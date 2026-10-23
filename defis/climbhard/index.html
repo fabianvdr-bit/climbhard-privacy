@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Je te défie sur ClimbHard !</title>
+<meta property="og:title" content="Je te défie sur ClimbHard !" />
+<meta property="og:description" content="Réussis à faire la même chose que moi. Appuie sur « Essayer le défi »." />
+<meta property="og:image" content="https://fabianvdr-bit.github.io/climbhard-privacy/defis/climbhard/apercu.png" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  :root { --fond: #111111; --carte: #ffffff; --texte: #111111; --doux: #6b7280; --accent: #0d9488; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: #fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 440px; padding: 28px 16px 40px; }
+  .marque { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; margin-bottom: 26px; }
+  .marque img { width: 48px; height: 48px; border-radius: 12px; }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 22px; }
+  .carte { background: var(--carte); color: var(--texte); border-radius: 18px; padding: 20px; margin-bottom: 22px; }
+  .etiq { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--doux); text-transform: uppercase; }
+  .titre { font-size: 22px; font-weight: 700; margin: 8px 0 12px; }
+  .valeur { font-size: 40px; font-weight: 800; color: var(--accent); }
+  .par { color: var(--doux); font-size: 14px; margin-top: 8px; }
+  .bouton { display: block; width: 100%; text-align: center; padding: 17px 0; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 800; font-size: 18px; text-decoration: none; border: 0; }
+  .second { display: block; text-align: center; color: #d1d5db; margin-top: 16px; font-size: 14px; }
+  .code { text-align: center; color: #9ca3af; font-family: monospace; font-size: 15px; margin: 18px 0 0; }
+  ol { color: #d1d5db; font-size: 14px; line-height: 1.6; padding-left: 20px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="marque"><img src="logo.png" alt="" /> <span id="nom-app">ClimbHard</span></div>
+  <h1>Je te défie de réussir à faire la même chose que moi !</h1>
+
+  <div class="carte" id="carte" hidden>
+    <div class="etiq">Le défi</div>
+    <div class="titre" id="titre"></div>
+    <div class="valeur" id="valeur"></div>
+    <div class="par" id="par"></div>
+  </div>
+
+  <a class="bouton" id="essayer" href="#">Essayer le défi ▶</a>
+  <a class="second" id="store" href="#">Je n'ai pas encore l'application</a>
+  <div class="code" id="code"></div>
+
+  <ol>
+    <li>Appuie sur <b>Essayer le défi</b> : l'application s'ouvre directement sur le défi.</li>
+    <li>Pas encore installée ? Installe-la depuis le Play Store, puis reviens sur cette page et appuie à nouveau sur <b>Essayer le défi</b>.</li>
+  </ol>
+</main>
+<script>
+  // Même page pour les trois apps : seule cette config change.
+  var APP = { scheme: "climbhard", packageId: "com.climbhard.app" };
+
+  var q = new URLSearchParams(location.search);
+  var code = (q.get("c") || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 6);
+  var store = "https://play.google.com/store/apps/details?id=" + APP.packageId +
+    (code ? "&referrer=" + encodeURIComponent("defi=" + code) : "");
+
+  if (q.get("t")) {
+    document.getElementById("carte").hidden = false;
+    document.getElementById("titre").textContent = q.get("t");
+    document.getElementById("valeur").textContent = (q.get("v") || "") + (q.get("u") ? " " + q.get("u") : "");
+    if (q.get("p")) document.getElementById("par").textContent = "Défi lancé par " + q.get("p");
+  }
+  if (code) document.getElementById("code").textContent = "code du défi : " + code;
+
+  var essayer = document.getElementById("essayer");
+  // Android/Chrome : intent:// ouvre l'app si elle est là, sinon le Play Store.
+  var isAndroid = /android/i.test(navigator.userAgent);
+  essayer.href = isAndroid
+    ? "intent://defi/" + code + "#Intent;scheme=" + APP.scheme + ";package=" + APP.packageId +
+      ";S.browser_fallback_url=" + encodeURIComponent(store) + ";end"
+    : store;
+  essayer.addEventListener("click", function () {
+    // Garde le code au cas où l'app doive d'abord être installée :
+    // dans l'app, onglet Défis → « Coller ».
+    try { navigator.clipboard && code && navigator.clipboard.writeText(code); } catch (e) {}
+  });
+  document.getElementById("store").href = store;
+  if (!code) { essayer.textContent = "Télécharger l'application ▶"; essayer.href = store; document.getElementById("store").hidden = true; }
+</script>
+</body>
+</html>
